@@ -6,6 +6,11 @@ import org.springframework.cloud.config.server.EnableConfigServer;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Enables config server.
+ * @author vikash.kaushik
+ * added rest contorller to check the server's availablitiy
+ */
 @EnableConfigServer
 @SpringBootApplication
 @RestController

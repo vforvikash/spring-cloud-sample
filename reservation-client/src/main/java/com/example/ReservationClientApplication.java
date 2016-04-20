@@ -32,10 +32,15 @@ import org.springframework.web.client.RestTemplate;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
-@EnableZuulProxy
-@EnableBinding(Source.class)
-@EnableCircuitBreaker
-@EnableDiscoveryClient
+/**
+ * Enables all required APIs
+ * @author vikash.kaushik
+ *
+ */
+@EnableZuulProxy//Proxy load balancing server
+@EnableBinding(Source.class)//added redis message channel
+@EnableCircuitBreaker//Hystrix circuit breaker enablement
+@EnableDiscoveryClient//register to service discovery
 @SpringBootApplication
 public class ReservationClientApplication {
 	
@@ -50,18 +55,25 @@ public class ReservationClientApplication {
 }
 
 
+/**
+ * Rest controller for reservation service
+ * @author vikash.kaushik
+ *
+ */
 @RestController
 @RequestMapping("/reservations")
 class ReservationApiGatewayRestController{
 	
 	@Autowired
-	@LoadBalanced 
+	@LoadBalanced //uses ribbon to load balance the client calls.
 	private RestTemplate restTemplate; 
 	
+	//Message channel to publish addition to reservation
 	@Autowired
 	@Output(Source.OUTPUT)
 	private MessageChannel messageChannel;
 	
+	//helps json to parameterized conversion of json into given types
 	ParameterizedTypeReference<Resources<Reservation>> ptr = new  ParameterizedTypeReference<Resources<Reservation>>() {};
 	
 	@RequestMapping(method=RequestMethod.POST)
@@ -70,6 +82,7 @@ class ReservationApiGatewayRestController{
 		this.messageChannel.send(MessageBuilder.withPayload(reservation.getReservationName()).build());
 	}
 	
+	//circuit breaker
 	@HystrixCommand(fallbackMethod="getReservationNamesFallbackMethod")
 	@RequestMapping("/names")
 	public Collection<String> getReservationNames(){
@@ -78,6 +91,9 @@ class ReservationApiGatewayRestController{
 				.getContent().stream().map(Reservation::getReservationName).collect(Collectors.toList());
 	}
 	
+	/**
+	 * @return empty list if reservation-service fails
+	 */
 	public Collection<String> getReservationNamesFallbackMethod(){
 		List<String> emptyList = Collections.emptyList();
 		//emptyList.add("Service is down.");
@@ -85,6 +101,10 @@ class ReservationApiGatewayRestController{
 	}
 }
 
+/**
+ * @author vikash.kaushik
+ * configuration to create a load balanced resttemplate bean
+ */
 @Configuration
 class MyConfiguration {
 
@@ -96,6 +116,10 @@ class MyConfiguration {
 }
 
 
+/**
+ * DTO
+ *
+ */
 class Reservation{
 	private Long id;
 	private String reservationName;

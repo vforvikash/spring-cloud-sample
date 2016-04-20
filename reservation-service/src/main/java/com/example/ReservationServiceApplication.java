@@ -27,15 +27,28 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * a service, registered to eureka server.
+ * @author vikash.kaushik
+ *
+ */
 @EnableDiscoveryClient
 @SpringBootApplication
-@EnableBinding(Sink.class)
+@EnableBinding(Sink.class)//Added for stream to receive data using message channel
 public class ReservationServiceApplication {
 	
+	/**
+	 * @return Its needed for sending status as sample to spring sleuth
+	 */
 	@Bean AlwaysSampler alwaysSampler(){
 		return new AlwaysSampler();
 	}
 	
+	/**
+	 * command line runner to initiate some data
+	 * @param rr
+	 * @return
+	 */
 	@Bean CommandLineRunner runner(ReservationRepository rr){
 		return args -> {
 			Arrays.asList("Vikash,Mintoo,Aakash,Hetal,Vidhi".split(",")).forEach(x-> rr.save(new Reservation(x)));
@@ -49,6 +62,11 @@ public class ReservationServiceApplication {
 
 }
 
+/**
+ * Message channel listener to get data from client
+ * @author vikash.kaushik
+ *
+ */
 @MessageEndpoint
 class MessageReservationReceiver{
 	@Autowired ReservationRepository repo;
@@ -60,12 +78,22 @@ class MessageReservationReceiver{
 	}
 }
 
+/**
+ * Rest resource
+ * @author vikash.kaushik
+ *
+ */
 @RepositoryRestResource
 interface ReservationRepository extends JpaRepository<Reservation, Long>{
 	@RestResource (path="by-name")
 	Collection<Reservation> findByReservationName(@Param("rn") String rn);
 }
 
+/**
+ * to check refreshscope implementation. actuator in action + update in config if property is changed in config server
+ * @author vikash.kaushik
+ *
+ */
 @RefreshScope
 @RestController
 class MessageRestController{
@@ -78,6 +106,11 @@ class MessageRestController{
 }
 
 
+/**
+ * sample entity
+ * @author vikash.kaushik
+ *
+ */
 @Entity
 class Reservation{
 	@Id
