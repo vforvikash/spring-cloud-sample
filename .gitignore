@@ -1,8 +1,5 @@
-.project
-.metadata
-bin/
-tmp/
-target/
-.classpath
-.settings/
-
+/target/
+/.idea/
+*.class
+*.project
+/.settings/
