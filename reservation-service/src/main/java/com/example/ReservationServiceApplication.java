@@ -27,6 +27,11 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.bookmark.Account;
+import com.example.bookmark.AccountRepository;
+import com.example.bookmark.Bookmark;
+import com.example.bookmark.BookmarkRepository;
+
 /**
  * a service, registered to eureka server.
  * @author vikash.kaushik
@@ -54,6 +59,27 @@ public class ReservationServiceApplication {
 			Arrays.asList("Vikash,Mintoo,Aakash,Hetal,Vidhi".split(",")).forEach(x-> rr.save(new Reservation(x)));
 			rr.findAll().forEach(System.out::println);
 		};
+	}
+	
+	/**
+	 * @param accountRepository
+	 * @param bookmarkRepository
+	 * @return CommandLineRunner
+	 */
+	@Bean
+	CommandLineRunner initBookmarkData(AccountRepository accountRepository,
+			BookmarkRepository bookmarkRepository) {
+		return (evt) -> Arrays.asList(
+				"jhoeller,dsyer,pwebb,ogierke,rwinch,mfisher,mpollack,jlong".split(","))
+				.forEach(
+						a -> {
+							Account account = accountRepository.save(new Account(a,
+									"password"));
+							bookmarkRepository.save(new Bookmark(account,
+									"http://bookmark.com/1/" + a, "A description"));
+							bookmarkRepository.save(new Bookmark(account,
+									"http://bookmark.com/2/" + a, "A description"));
+						});
 	}
 
 	public static void main(String[] args) {
