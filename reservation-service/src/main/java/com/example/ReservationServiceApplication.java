@@ -2,6 +2,7 @@ package com.example;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,10 +19,13 @@ import org.springframework.cloud.sleuth.sampler.AlwaysSampler;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.rest.core.annotation.RestResource;
+import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
+import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +60,7 @@ public class ReservationServiceApplication {
 	 */
 	@Bean CommandLineRunner runner(ReservationRepository rr){
 		return args -> {
-			Arrays.asList("Vikash,Mintoo,Aakash,Hetal,Vidhi".split(",")).forEach(x-> rr.save(new Reservation(x)));
+			Arrays.asList("Vikash,Mintoo,Aakash,Hetal,Vidhi,Rajni".split(",")).forEach(x-> rr.save(new Reservation(x)));
 			rr.findAll().forEach(System.out::println);
 		};
 	}
@@ -88,6 +92,15 @@ public class ReservationServiceApplication {
 
 }
 
+@Configuration
+class MyCoolConfiguration extends RepositoryRestMvcConfiguration {
+ 
+    @Override
+    protected void configureRepositoryRestConfiguration(RepositoryRestConfiguration config) {
+        config.exposeIdsFor(Reservation.class);
+    }
+}
+
 /**
  * Message channel listener to get data from client
  * @author vikash.kaushik
@@ -112,7 +125,10 @@ class MessageReservationReceiver{
 @RepositoryRestResource
 interface ReservationRepository extends JpaRepository<Reservation, Long>{
 	@RestResource (path="by-name")
-	Collection<Reservation> findByReservationName(@Param("rn") String rn);
+	Collection<Reservation> findByReservationNameIgnoreCase(@Param("rn") String rn);
+
+	@RestResource (path="get-all")
+	List<Reservation> findAll();
 }
 
 /**
@@ -125,9 +141,16 @@ interface ReservationRepository extends JpaRepository<Reservation, Long>{
 class MessageRestController{
 	@Value("${message}") private String message;
 	
+	@Autowired private ReservationRepository repo;
+	
 	@RequestMapping("/message")
 	public String getMessage(){
 		return this.message;
+	}
+	
+	@RequestMapping("/get_all")
+	public Collection<Reservation> getAllReservation(){
+		return repo.findAll();
 	}
 }
 
