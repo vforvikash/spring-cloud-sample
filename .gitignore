@@ -3,14 +3,14 @@
 /.idea/
 *.class
 *.project
-./config-server/.settings
-./eureka-server/.settings
-./hystrix-dashboard/.settings
-./reservation-client/.settings
-./reservation-service/.settings
-./config-server/target
-./eureka-server/target
-./hystrix-dashboard/target
-./reservation-client/target
-./reservation-service/target
+./config-server/.settings/
+./eureka-server/.settings/
+./hystrix-dashboard/.settings/
+./reservation-client/.settings/
+./reservation-service/.settings/
+./config-server/target/
+./eureka-server/target/
+./hystrix-dashboard/target/
+./reservation-client/target/
+./reservation-service/target/
 
